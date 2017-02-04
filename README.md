@@ -14,7 +14,25 @@ a higher level so the entire context is available for analysis.
 
 ## Example
 
-Coming soon
+```go
+adapter := NewReplayAdapter(
+    logger,           // gomol logger or adapter
+    gomol.LevelDebug, // track debug messages for replay
+    gomol.LevelInfo,  // also track info messages
+)
+
+// ...
+
+if requestIsTakingLong() {
+    // Re-log journaled messages at warning level
+    adapter.Replay(gomol.LevelWarning)
+}
+```
+
+Messages which are replayed at a higher level will keep the original message timestamp
+(if supplied), or use the time the `Log` message was invoked (if not supplied). Each 
+message will also be sent with an additional attribute called `replayed-from-level` with
+a value equal to the original level of the message.
 
 ## License
 
