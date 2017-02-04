@@ -47,6 +47,9 @@ func newReplayAdapterWithClock(logger gomol.WrappableLogger, clock clock, journa
 	}
 }
 
+// LogWithTime will log a message at the provided level to all loggers added
+// to the logger wrapped by this RollupAdapter. It is similar to Log except
+// the timestamp will be set to the value of ts.
 func (ra *ReplayAdapter) LogWithTime(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 	if err := ra.base.LogWithTime(level, ts, attrs, msg, a...); err != nil {
 		return err
@@ -67,6 +70,8 @@ func (ra *ReplayAdapter) LogWithTime(level gomol.LogLevel, ts time.Time, attrs *
 	return nil
 }
 
+// Log will log a message at the provided level to all loggers added to the
+// logger wrapped by this RollupAdapter.
 func (ra *ReplayAdapter) Log(level gomol.LogLevel, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 	if !ra.shouldJournal(level) {
 		return ra.base.Log(level, attrs, msg, a...)
@@ -75,10 +80,14 @@ func (ra *ReplayAdapter) Log(level gomol.LogLevel, attrs *gomol.Attrs, msg strin
 	return ra.LogWithTime(level, ra.clock.Now(), attrs, msg, a...)
 }
 
+// ShutdownLoggers will call the wrapped logger's ShutdownLoggers method.
 func (ra *ReplayAdapter) ShutdownLoggers() error {
 	return ra.base.ShutdownLoggers()
 }
 
+// Replay will cause all of the messages previously logged at one of the
+// journaled levels to be re-set at the given level. All future messages
+// logged at one of the journaled levels will be replayed immediately.
 func (ra *ReplayAdapter) Replay(level gomol.LogLevel) error {
 	if ra.replayingAt != nil && *ra.replayingAt <= level {
 		return nil
