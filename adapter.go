@@ -127,3 +127,8 @@ func addAttr(attrs *gomol.Attrs, level gomol.LogLevel) *gomol.Attrs {
 
 	return attrs.SetAttr(AttrReplay, level)
 }
+
+func (ra *ReplayAdapter) reset() {
+	ra.journal = ra.journal[:0]
+	ra.replayingAt = nil
+}

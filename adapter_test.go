@@ -9,13 +9,6 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-type logArgs struct {
-	level gomol.LogLevel
-	attrs *gomol.Attrs
-	msg   string
-	a     []interface{}
-}
-
 func (s *ReplaySuite) TestWhitelistLevelsAreJournaled(c *C) {
 	var (
 		logger   = newDefaultMockLogger()

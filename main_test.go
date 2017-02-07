@@ -17,6 +17,16 @@ type ReplaySuite struct{}
 var _ = Suite(&ReplaySuite{})
 
 //
+//
+
+type logArgs struct {
+	level gomol.LogLevel
+	attrs *gomol.Attrs
+	msg   string
+	a     []interface{}
+}
+
+//
 // Mocks
 
 type mockLogger struct {
