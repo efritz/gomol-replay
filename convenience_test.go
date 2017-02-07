@@ -12,6 +12,17 @@ type (
 	logFunc  func(msg string) error
 	logFuncf func(msg string, a ...interface{}) error
 	logFuncm func(attrs *gomol.Attrs, msg string, a ...interface{}) error
+
+	testExiter struct {
+		exited bool
+		code   int
+	}
+
+	dieTestFunc struct {
+		f           func()
+		checkAttrs  bool
+		checkParams bool
+	}
 )
 
 var (
@@ -24,17 +35,71 @@ var (
 	}
 )
 
+func (exiter *testExiter) Exit(code int) {
+	exiter.code = code
+	exiter.exited = true
+}
+
+func (s *ReplaySuite) TestDieEndsProcessAfterImmediateReplay(c *C) {
+	var (
+		messages  = []logArgs{}
+		exitCount = 0
+
+		exiter = &testExiter{}
+		logger = newDefaultMockLogger()
+		replay = NewReplayAdapter(logger, AllLevels...)
+	)
+
+	setExiter(exiter)
+
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+		messages = append(messages, logArgs{level, attrs, msg, a})
+		return nil
+	}
+
+	logger.shutdownLoggers = func() error {
+		exitCount++
+		return nil
+	}
+
+	for i, data := range []dieTestFunc{
+		{func() { replay.Die(1000, "foo") }, false, false},
+		{func() { replay.Dief(2000, "foo", 42) }, false, true},
+		{func() { replay.Diem(3000, gomol.NewAttrsFromMap(map[string]interface{}{"x": "y"}), "foo", 42) }, true, false},
+	} {
+		replay.Replay(gomol.LevelWarning)
+		data.f()
+
+		c.Assert(exitCount, Equals, i+1)
+		c.Assert(exiter.code, Equals, 1000*(i+1))
+
+		c.Assert(len(messages), Equals, 2)
+		c.Assert(messages[0].level, Equals, gomol.LevelFatal)
+		c.Assert(messages[1].level, Equals, gomol.LevelWarning)
+		c.Assert(messages[0].msg, Equals, "foo")
+		c.Assert(messages[1].msg, Equals, "foo")
+
+		if data.checkAttrs {
+			c.Assert(messages[0].attrs.GetAttr("x"), Equals, "y")
+			c.Assert(messages[1].attrs.GetAttr("x"), Equals, "y")
+		}
+
+		if data.checkParams {
+			c.Assert(messages[0].a[0], Equals, 42)
+			c.Assert(messages[1].a[0], Equals, 42)
+		}
+
+		// Reset
+		messages = messages[:0]
+	}
+}
+
 func (s *ReplaySuite) TestConvenienceMethods(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
 		replay   = NewReplayAdapter(logger, AllLevels...)
 		messages = []logArgs{}
 	)
-
-	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
-		messages = append(messages, logArgs{level, attrs, msg, a})
-		return nil
-	}
 
 	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
@@ -97,6 +162,8 @@ func (s *ReplaySuite) TestConvenienceMethods(c *C) {
 }
 
 func assert(c *C, messages []logArgs, level gomol.LogLevel, attrs []string, params []int) {
+	c.Assert(len(messages), Equals, 6)
+
 	for i := 0; i < 3; i++ {
 		c.Assert(messages[i+0].level, Equals, level)
 		c.Assert(messages[i+3].level, Equals, gomol.LevelFatal)

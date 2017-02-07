@@ -198,21 +198,21 @@ func (ra *ReplayAdapter) Fatalm(m *gomol.Attrs, msg string, a ...interface{}) er
 // Die will log a message using Fatal, call ShutdownLoggers and then exit the application with the provided exit code.
 // This function is not subject to rollup and is always sent to the wrapped logger.
 func (ra *ReplayAdapter) Die(exitCode int, msg string) {
-	ra.base.Log(gomol.LevelFatal, nil, msg)
+	ra.Log(gomol.LevelFatal, nil, msg)
 	ra.base.ShutdownLoggers()
 	curExiter.Exit(exitCode)
 }
 
 // Dief will log a message using Fatalf, call ShutdownLoggers and then exit the application with the provided exit code.
 func (ra *ReplayAdapter) Dief(exitCode int, msg string, a ...interface{}) {
-	ra.base.Log(gomol.LevelFatal, nil, msg, a...)
+	ra.Log(gomol.LevelFatal, nil, msg, a...)
 	ra.base.ShutdownLoggers()
 	curExiter.Exit(exitCode)
 }
 
 // Diem will log a message using Fatalm, call ShutdownLoggers and then exit the application with the provided exit code.
 func (ra *ReplayAdapter) Diem(exitCode int, m *gomol.Attrs, msg string, a ...interface{}) {
-	ra.base.Log(gomol.LevelFatal, m, msg, a...)
+	ra.Log(gomol.LevelFatal, m, msg, a...)
 	ra.base.ShutdownLoggers()
 	curExiter.Exit(exitCode)
 }
