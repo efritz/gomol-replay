@@ -315,6 +315,30 @@ func (s *ReplaySuite) TestCheckSecondReplayAddsAttribute(c *C) {
 	c.Assert(messages[7].attrs.GetAttr(AttrReplay), Equals, gomol.LevelDebug)
 }
 
+func (s *ReplaySuite) TestReplayErrors(c *C) {
+	var (
+		logger = newDefaultMockLogger()
+		replay = NewReplayAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
+		calls  = 0
+	)
+
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+		calls++
+		if calls > 3 {
+			return fmt.Errorf("Error %d", calls-3)
+		}
+
+		return nil
+	}
+
+	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "foo"), IsNil)
+	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "bar"), IsNil)
+	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "baz"), IsNil)
+
+	c.Assert(replay.Replay(gomol.LevelError), ErrorMatches, "Error 1")
+	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "baz"), ErrorMatches, "Error 2")
+}
+
 func (s *ReplaySuite) TestShutdownLoggers(c *C) {
 	var (
 		logger = newDefaultMockLogger()
