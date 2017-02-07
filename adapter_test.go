@@ -17,20 +17,22 @@ type logArgs struct {
 }
 
 func (s *ReplaySuite) TestWhitelistLevelsAreJournaled(c *C) {
-	messages := []string{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelInfo, gomol.LevelError)
+		messages = []string{}
+	)
 
-	l := newDefaultMockLogger()
-	l.log = func(level gomol.LogLevel, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.log = func(level gomol.LogLevel, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, msg)
 		return nil
 	}
 
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, msg)
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelInfo, gomol.LevelError)
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.Log(gomol.LevelInfo, nil, "bar")
 	replay.Log(gomol.LevelWarning, nil, "baz")
@@ -50,57 +52,57 @@ func (s *ReplaySuite) TestWhitelistLevelsAreJournaled(c *C) {
 }
 
 func (s *ReplaySuite) TestReplayJournal(c *C) {
-	messages := []logArgs{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		messages = []logArgs{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelDebug)
 	replay.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"x": "x"}), "foo", 12)
 	replay.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"y": "y"}), "bar", 43)
 	replay.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"z": "z"}), "baz", 74)
 	replay.Replay(gomol.LevelWarning)
 
 	c.Assert(len(messages), Equals, 6)
-	c.Assert(messages[0].level, Equals, gomol.LevelDebug)
-	c.Assert(messages[1].level, Equals, gomol.LevelDebug)
-	c.Assert(messages[2].level, Equals, gomol.LevelDebug)
-	c.Assert(messages[3].level, Equals, gomol.LevelWarning)
-	c.Assert(messages[4].level, Equals, gomol.LevelWarning)
-	c.Assert(messages[5].level, Equals, gomol.LevelWarning)
 
-	for i, msg := range []string{"foo", "bar", "baz", "foo", "bar", "baz"} {
-		c.Assert(messages[i].msg, Equals, msg)
+	for i := 0; i < 3; i++ {
+		c.Assert(messages[i+0].level, Equals, gomol.LevelDebug)
+		c.Assert(messages[i+3].level, Equals, gomol.LevelWarning)
 	}
 
-	// Ensure other attributes are sent
-	c.Assert(messages[0].a[0], Equals, 12)
-	c.Assert(messages[3].a[0], Equals, 12)
-	c.Assert(messages[1].a[0], Equals, 43)
-	c.Assert(messages[4].a[0], Equals, 43)
-	c.Assert(messages[2].a[0], Equals, 74)
-	c.Assert(messages[5].a[0], Equals, 74)
-	c.Assert(messages[0].attrs.GetAttr("x"), Equals, "x")
-	c.Assert(messages[3].attrs.GetAttr("x"), Equals, "x")
-	c.Assert(messages[1].attrs.GetAttr("y"), Equals, "y")
-	c.Assert(messages[4].attrs.GetAttr("y"), Equals, "y")
-	c.Assert(messages[2].attrs.GetAttr("z"), Equals, "z")
-	c.Assert(messages[5].attrs.GetAttr("z"), Equals, "z")
+	for i, msg := range []string{"foo", "bar", "baz"} {
+		c.Assert(messages[i+0].msg, Equals, msg)
+		c.Assert(messages[i+3].msg, Equals, msg)
+	}
+
+	for i, val := range []int{12, 43, 74} {
+		c.Assert(messages[i+0].a[0], Equals, val)
+		c.Assert(messages[i+3].a[0], Equals, val)
+	}
+
+	for i, val := range []string{"x", "y", "z"} {
+		c.Assert(messages[i+0].attrs.GetAttr(val), Equals, val)
+		c.Assert(messages[i+3].attrs.GetAttr(val), Equals, val)
+	}
 }
 
 func (s *ReplaySuite) TestReplayTwice(c *C) {
-	messages := []logArgs{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		messages = []logArgs{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelDebug)
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.Log(gomol.LevelDebug, nil, "bar")
 	replay.Log(gomol.LevelDebug, nil, "baz")
@@ -124,15 +126,17 @@ func (s *ReplaySuite) TestReplayTwice(c *C) {
 }
 
 func (s *ReplaySuite) TestReplayAtHigherlevelNoops(c *C) {
-	messages := []logArgs{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		messages = []logArgs{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelDebug)
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.Log(gomol.LevelDebug, nil, "bar")
 	replay.Log(gomol.LevelDebug, nil, "baz")
@@ -153,15 +157,17 @@ func (s *ReplaySuite) TestReplayAtHigherlevelNoops(c *C) {
 }
 
 func (s *ReplaySuite) TestLogAfterReplaySendsImmediately(c *C) {
-	messages := []logArgs{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		messages = []logArgs{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelDebug)
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.Log(gomol.LevelDebug, nil, "bar")
 	replay.Log(gomol.LevelDebug, nil, "baz")
@@ -187,15 +193,17 @@ func (s *ReplaySuite) TestLogAfterReplaySendsImmediately(c *C) {
 }
 
 func (s *ReplaySuite) TestLogAfterSecondReplaySendsAtNewLevel(c *C) {
-	messages := []logArgs{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		messages = []logArgs{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelDebug)
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.Log(gomol.LevelDebug, nil, "bar")
 	replay.Replay(gomol.LevelWarning)
@@ -221,11 +229,15 @@ func (s *ReplaySuite) TestLogAfterSecondReplaySendsAtNewLevel(c *C) {
 }
 
 func (s *ReplaySuite) TestReplayKeepsOriginalTimestamp(c *C) {
-	times1 := map[string]time.Time{}
-	times2 := map[string]time.Time{}
+	var (
+		logger = newDefaultMockLogger()
+		clock  = newMockClock(24000)
+		replay = newReplayAdapterWithClock(logger, clock, gomol.LevelDebug)
+		times1 = map[string]time.Time{}
+		times2 = map[string]time.Time{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		if level == gomol.LevelDebug {
 			times1[msg] = ts
 		} else {
@@ -234,9 +246,6 @@ func (s *ReplaySuite) TestReplayKeepsOriginalTimestamp(c *C) {
 
 		return nil
 	}
-
-	clock := newMockClock(24000)
-	replay := newReplayAdapterWithClock(l, clock, gomol.LevelDebug)
 
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.LogWithTime(gomol.LevelDebug, time.Unix(61, 500), nil, "bar")
@@ -256,15 +265,17 @@ func (s *ReplaySuite) TestReplayKeepsOriginalTimestamp(c *C) {
 }
 
 func (s *ReplaySuite) TestCheckReplayAddsAttribute(c *C) {
-	messages := []logArgs{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
+		messages = []logArgs{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelDebug, gomol.LevelInfo)
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.Log(gomol.LevelInfo, nil, "bar")
 	replay.Log(gomol.LevelDebug, nil, "baz")
@@ -283,15 +294,17 @@ func (s *ReplaySuite) TestCheckReplayAddsAttribute(c *C) {
 }
 
 func (s *ReplaySuite) TestCheckSecondReplayAddsAttribute(c *C) {
-	messages := []logArgs{}
+	var (
+		logger   = newDefaultMockLogger()
+		replay   = NewReplayAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
+		messages = []logArgs{}
+	)
 
-	l := newDefaultMockLogger()
-	l.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
+	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
 		messages = append(messages, logArgs{level, attrs, msg, a})
 		return nil
 	}
 
-	replay := NewReplayAdapter(l, gomol.LevelDebug, gomol.LevelInfo)
 	replay.Log(gomol.LevelDebug, nil, "foo")
 	replay.Log(gomol.LevelInfo, nil, "bar")
 	replay.Replay(gomol.LevelWarning)
@@ -310,11 +323,14 @@ func (s *ReplaySuite) TestCheckSecondReplayAddsAttribute(c *C) {
 }
 
 func (s *ReplaySuite) TestShutdownLoggers(c *C) {
-	l := newDefaultMockLogger()
-	l.shutdownLoggers = func() error {
+	var (
+		logger = newDefaultMockLogger()
+		replay = NewReplayAdapter(logger)
+	)
+
+	logger.shutdownLoggers = func() error {
 		return fmt.Errorf("foo")
 	}
 
-	replay := NewReplayAdapter(l)
 	c.Assert(replay.ShutdownLoggers(), ErrorMatches, "foo")
 }
