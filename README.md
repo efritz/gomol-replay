@@ -16,7 +16,7 @@ a higher level so the entire context is available for analysis.
 ## Example
 
 ```go
-adapter := raplay.NewAdapter(
+adapter := replay.NewAdapter(
     logger,           // gomol logger or adapter
     gomol.LevelDebug, // track debug messages for replay
     gomol.LevelInfo,  // also track info messages
