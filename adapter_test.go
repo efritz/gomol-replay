@@ -12,7 +12,7 @@ import (
 func (s *ReplaySuite) TestWhitelistLevelsAreJournaled(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelInfo, gomol.LevelError)
+		adapter  = NewAdapter(logger, gomol.LevelInfo, gomol.LevelError)
 		messages = []string{}
 	)
 
@@ -26,11 +26,11 @@ func (s *ReplaySuite) TestWhitelistLevelsAreJournaled(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.Log(gomol.LevelInfo, nil, "bar")
-	replay.Log(gomol.LevelWarning, nil, "baz")
-	replay.Log(gomol.LevelError, nil, "bnk")
-	replay.Log(gomol.LevelFatal, nil, "qux")
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.Log(gomol.LevelInfo, nil, "bar")
+	adapter.Log(gomol.LevelWarning, nil, "baz")
+	adapter.Log(gomol.LevelError, nil, "bnk")
+	adapter.Log(gomol.LevelFatal, nil, "qux")
 
 	c.Assert(len(messages), Equals, 5)
 	c.Assert(messages[0], Equals, "foo")
@@ -39,15 +39,15 @@ func (s *ReplaySuite) TestWhitelistLevelsAreJournaled(c *C) {
 	c.Assert(messages[3], Equals, "bnk")
 	c.Assert(messages[4], Equals, "qux")
 
-	c.Assert(len(replay.journal), Equals, 2)
-	c.Assert(replay.journal[0].msg, Equals, "bar")
-	c.Assert(replay.journal[1].msg, Equals, "bnk")
+	c.Assert(len(adapter.journal), Equals, 2)
+	c.Assert(adapter.journal[0].msg, Equals, "bar")
+	c.Assert(adapter.journal[1].msg, Equals, "bnk")
 }
 
 func (s *ReplaySuite) TestReplayJournal(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		adapter  = NewAdapter(logger, gomol.LevelDebug)
 		messages = []logArgs{}
 	)
 
@@ -56,10 +56,10 @@ func (s *ReplaySuite) TestReplayJournal(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"x": "x"}), "foo", 12)
-	replay.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"y": "y"}), "bar", 43)
-	replay.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"z": "z"}), "baz", 74)
-	replay.Replay(gomol.LevelWarning)
+	adapter.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"x": "x"}), "foo", 12)
+	adapter.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"y": "y"}), "bar", 43)
+	adapter.Log(gomol.LevelDebug, gomol.NewAttrsFromMap(map[string]interface{}{"z": "z"}), "baz", 74)
+	adapter.Replay(gomol.LevelWarning)
 
 	c.Assert(len(messages), Equals, 6)
 
@@ -87,7 +87,7 @@ func (s *ReplaySuite) TestReplayJournal(c *C) {
 func (s *ReplaySuite) TestReplayTwice(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		adapter  = NewAdapter(logger, gomol.LevelDebug)
 		messages = []logArgs{}
 	)
 
@@ -96,11 +96,11 @@ func (s *ReplaySuite) TestReplayTwice(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.Log(gomol.LevelDebug, nil, "bar")
-	replay.Log(gomol.LevelDebug, nil, "baz")
-	replay.Replay(gomol.LevelWarning)
-	replay.Replay(gomol.LevelError)
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.Log(gomol.LevelDebug, nil, "bar")
+	adapter.Log(gomol.LevelDebug, nil, "baz")
+	adapter.Replay(gomol.LevelWarning)
+	adapter.Replay(gomol.LevelError)
 
 	c.Assert(len(messages), Equals, 9)
 	c.Assert(messages[0].level, Equals, gomol.LevelDebug)
@@ -121,7 +121,7 @@ func (s *ReplaySuite) TestReplayTwice(c *C) {
 func (s *ReplaySuite) TestReplayAtHigherlevelNoops(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		adapter  = NewAdapter(logger, gomol.LevelDebug)
 		messages = []logArgs{}
 	)
 
@@ -130,11 +130,11 @@ func (s *ReplaySuite) TestReplayAtHigherlevelNoops(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.Log(gomol.LevelDebug, nil, "bar")
-	replay.Log(gomol.LevelDebug, nil, "baz")
-	replay.Replay(gomol.LevelError)
-	replay.Replay(gomol.LevelWarning)
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.Log(gomol.LevelDebug, nil, "bar")
+	adapter.Log(gomol.LevelDebug, nil, "baz")
+	adapter.Replay(gomol.LevelError)
+	adapter.Replay(gomol.LevelWarning)
 
 	c.Assert(len(messages), Equals, 6)
 	c.Assert(messages[0].level, Equals, gomol.LevelDebug)
@@ -152,7 +152,7 @@ func (s *ReplaySuite) TestReplayAtHigherlevelNoops(c *C) {
 func (s *ReplaySuite) TestLogAfterReplaySendsImmediately(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		adapter  = NewAdapter(logger, gomol.LevelDebug)
 		messages = []logArgs{}
 	)
 
@@ -161,12 +161,12 @@ func (s *ReplaySuite) TestLogAfterReplaySendsImmediately(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.Log(gomol.LevelDebug, nil, "bar")
-	replay.Log(gomol.LevelDebug, nil, "baz")
-	replay.Replay(gomol.LevelWarning)
-	replay.Log(gomol.LevelDebug, nil, "bnk")
-	replay.Log(gomol.LevelDebug, nil, "qux")
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.Log(gomol.LevelDebug, nil, "bar")
+	adapter.Log(gomol.LevelDebug, nil, "baz")
+	adapter.Replay(gomol.LevelWarning)
+	adapter.Log(gomol.LevelDebug, nil, "bnk")
+	adapter.Log(gomol.LevelDebug, nil, "qux")
 
 	c.Assert(len(messages), Equals, 10)
 	c.Assert(messages[0].level, Equals, gomol.LevelDebug)
@@ -188,7 +188,7 @@ func (s *ReplaySuite) TestLogAfterReplaySendsImmediately(c *C) {
 func (s *ReplaySuite) TestLogAfterSecondReplaySendsAtNewLevel(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelDebug)
+		adapter  = NewAdapter(logger, gomol.LevelDebug)
 		messages = []logArgs{}
 	)
 
@@ -197,12 +197,12 @@ func (s *ReplaySuite) TestLogAfterSecondReplaySendsAtNewLevel(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.Log(gomol.LevelDebug, nil, "bar")
-	replay.Replay(gomol.LevelWarning)
-	replay.Replay(gomol.LevelError)
-	replay.Log(gomol.LevelDebug, nil, "baz")
-	replay.Log(gomol.LevelDebug, nil, "bnk")
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.Log(gomol.LevelDebug, nil, "bar")
+	adapter.Replay(gomol.LevelWarning)
+	adapter.Replay(gomol.LevelError)
+	adapter.Log(gomol.LevelDebug, nil, "baz")
+	adapter.Log(gomol.LevelDebug, nil, "bnk")
 
 	c.Assert(len(messages), Equals, 10)
 	c.Assert(messages[0].level, Equals, gomol.LevelDebug)
@@ -223,11 +223,11 @@ func (s *ReplaySuite) TestLogAfterSecondReplaySendsAtNewLevel(c *C) {
 
 func (s *ReplaySuite) TestReplayKeepsOriginalTimestamp(c *C) {
 	var (
-		logger = newDefaultMockLogger()
-		clock  = newMockClock(24000)
-		replay = newReplayAdapterWithClock(logger, clock, gomol.LevelDebug)
-		times1 = map[string]time.Time{}
-		times2 = map[string]time.Time{}
+		logger  = newDefaultMockLogger()
+		clock   = newMockClock(24000)
+		adapter = newAdapterWithClock(logger, clock, gomol.LevelDebug)
+		times1  = map[string]time.Time{}
+		times2  = map[string]time.Time{}
 	)
 
 	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
@@ -240,12 +240,12 @@ func (s *ReplaySuite) TestReplayKeepsOriginalTimestamp(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.LogWithTime(gomol.LevelDebug, time.Unix(61, 500), nil, "bar")
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.LogWithTime(gomol.LevelDebug, time.Unix(61, 500), nil, "bar")
 	clock.advance(3000)
-	replay.Log(gomol.LevelDebug, nil, "baz")
+	adapter.Log(gomol.LevelDebug, nil, "baz")
 	clock.advance(10000)
-	replay.Replay(gomol.LevelError)
+	adapter.Replay(gomol.LevelError)
 
 	c.Assert(len(times1), Equals, 3)
 	c.Assert(len(times2), Equals, 3)
@@ -260,7 +260,7 @@ func (s *ReplaySuite) TestReplayKeepsOriginalTimestamp(c *C) {
 func (s *ReplaySuite) TestCheckReplayAddsAttribute(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
+		adapter  = NewAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
 		messages = []logArgs{}
 	)
 
@@ -269,11 +269,11 @@ func (s *ReplaySuite) TestCheckReplayAddsAttribute(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.Log(gomol.LevelInfo, nil, "bar")
-	replay.Log(gomol.LevelDebug, nil, "baz")
-	replay.Replay(gomol.LevelError)
-	replay.Log(gomol.LevelDebug, nil, "bnk")
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.Log(gomol.LevelInfo, nil, "bar")
+	adapter.Log(gomol.LevelDebug, nil, "baz")
+	adapter.Replay(gomol.LevelError)
+	adapter.Log(gomol.LevelDebug, nil, "bnk")
 
 	c.Assert(len(messages), Equals, 8)
 	c.Assert(messages[0].attrs, IsNil)
@@ -289,7 +289,7 @@ func (s *ReplaySuite) TestCheckReplayAddsAttribute(c *C) {
 func (s *ReplaySuite) TestCheckSecondReplayAddsAttribute(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
+		adapter  = NewAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
 		messages = []logArgs{}
 	)
 
@@ -298,11 +298,11 @@ func (s *ReplaySuite) TestCheckSecondReplayAddsAttribute(c *C) {
 		return nil
 	}
 
-	replay.Log(gomol.LevelDebug, nil, "foo")
-	replay.Log(gomol.LevelInfo, nil, "bar")
-	replay.Replay(gomol.LevelWarning)
-	replay.Replay(gomol.LevelError)
-	replay.Log(gomol.LevelDebug, nil, "bnk")
+	adapter.Log(gomol.LevelDebug, nil, "foo")
+	adapter.Log(gomol.LevelInfo, nil, "bar")
+	adapter.Replay(gomol.LevelWarning)
+	adapter.Replay(gomol.LevelError)
+	adapter.Log(gomol.LevelDebug, nil, "bnk")
 
 	c.Assert(len(messages), Equals, 8)
 	c.Assert(messages[0].attrs, IsNil)
@@ -317,9 +317,9 @@ func (s *ReplaySuite) TestCheckSecondReplayAddsAttribute(c *C) {
 
 func (s *ReplaySuite) TestReplayErrors(c *C) {
 	var (
-		logger = newDefaultMockLogger()
-		replay = NewReplayAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
-		calls  = 0
+		logger  = newDefaultMockLogger()
+		adapter = NewAdapter(logger, gomol.LevelDebug, gomol.LevelInfo)
+		calls   = 0
 	)
 
 	logger.logWithTime = func(level gomol.LogLevel, ts time.Time, attrs *gomol.Attrs, msg string, a ...interface{}) error {
@@ -331,23 +331,23 @@ func (s *ReplaySuite) TestReplayErrors(c *C) {
 		return nil
 	}
 
-	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "foo"), IsNil)
-	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "bar"), IsNil)
-	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "baz"), IsNil)
+	c.Assert(adapter.LogWithTime(gomol.LevelInfo, time.Now(), nil, "foo"), IsNil)
+	c.Assert(adapter.LogWithTime(gomol.LevelInfo, time.Now(), nil, "bar"), IsNil)
+	c.Assert(adapter.LogWithTime(gomol.LevelInfo, time.Now(), nil, "baz"), IsNil)
 
-	c.Assert(replay.Replay(gomol.LevelError), ErrorMatches, "Error 1")
-	c.Assert(replay.LogWithTime(gomol.LevelInfo, time.Now(), nil, "baz"), ErrorMatches, "Error 2")
+	c.Assert(adapter.Replay(gomol.LevelError), ErrorMatches, "Error 1")
+	c.Assert(adapter.LogWithTime(gomol.LevelInfo, time.Now(), nil, "baz"), ErrorMatches, "Error 2")
 }
 
 func (s *ReplaySuite) TestShutdownLoggers(c *C) {
 	var (
-		logger = newDefaultMockLogger()
-		replay = NewReplayAdapter(logger)
+		logger  = newDefaultMockLogger()
+		adapter = NewAdapter(logger)
 	)
 
 	logger.shutdownLoggers = func() error {
 		return fmt.Errorf("foo")
 	}
 
-	c.Assert(replay.ShutdownLoggers(), ErrorMatches, "foo")
+	c.Assert(adapter.ShutdownLoggers(), ErrorMatches, "foo")
 }

@@ -27,31 +27,31 @@ func setExiter(exiter appExiter) {
 }
 
 // Dbg is a short-hand version of Debug
-func (ra *ReplayAdapter) Dbg(msg string) error {
-	return ra.Debug(msg)
+func (a *Adapter) Dbg(msg string) error {
+	return a.Debug(msg)
 }
 
 // Dbgf is a short-hand version of Debugf
-func (ra *ReplayAdapter) Dbgf(msg string, a ...interface{}) error {
-	return ra.Debugf(msg, a...)
+func (a *Adapter) Dbgf(msg string, args ...interface{}) error {
+	return a.Debugf(msg, args...)
 }
 
 // Dbgm is a short-hand version of Debugm
-func (ra *ReplayAdapter) Dbgm(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Debugm(m, msg, a...)
+func (a *Adapter) Dbgm(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Debugm(m, msg, args...)
 }
 
 // Debug logs msg to all added loggers at LogLevel.LevelDebug
-func (ra *ReplayAdapter) Debug(msg string) error {
-	return ra.Log(gomol.LevelDebug, nil, msg)
+func (a *Adapter) Debug(msg string) error {
+	return a.Log(gomol.LevelDebug, nil, msg)
 }
 
 /*
 Debugf uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelDebug
 */
-func (ra *ReplayAdapter) Debugf(msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelDebug, nil, msg, a...)
+func (a *Adapter) Debugf(msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelDebug, nil, msg, args...)
 }
 
 /*
@@ -60,21 +60,21 @@ the resulting message to all added loggers at LogLevel.LevelDebug. It will also
 merge all attributes passed in m with any attributes added to Base and include them
 with the message if the Logger supports it.
 */
-func (ra *ReplayAdapter) Debugm(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelDebug, m, msg, a...)
+func (a *Adapter) Debugm(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelDebug, m, msg, args...)
 }
 
 // Info logs msg to all added loggers at LogLevel.LevelInfo
-func (ra *ReplayAdapter) Info(msg string) error {
-	return ra.Log(gomol.LevelInfo, nil, msg)
+func (a *Adapter) Info(msg string) error {
+	return a.Log(gomol.LevelInfo, nil, msg)
 }
 
 /*
 Infof uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelInfo
 */
-func (ra *ReplayAdapter) Infof(msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelInfo, nil, msg, a...)
+func (a *Adapter) Infof(msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelInfo, nil, msg, args...)
 }
 
 /*
@@ -83,39 +83,39 @@ the resulting message to all added loggers at LogLevel.LevelInfo. It will also
 merge all attributes passed in m with any attributes added to Base and include them
 with the message if the Logger supports it.
 */
-func (ra *ReplayAdapter) Infom(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelInfo, m, msg, a...)
+func (a *Adapter) Infom(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelInfo, m, msg, args...)
 }
 
 // Warn is a short-hand version of Warning
-func (ra *ReplayAdapter) Warn(msg string) error {
-	return ra.Warning(msg)
+func (a *Adapter) Warn(msg string) error {
+	return a.Warning(msg)
 }
 
 // Warnf is a short-hand version of Warningf
-func (ra *ReplayAdapter) Warnf(msg string, a ...interface{}) error {
-	return ra.Warningf(msg, a...)
+func (a *Adapter) Warnf(msg string, args ...interface{}) error {
+	return a.Warningf(msg, args...)
 }
 
 // Warnm is a short-hand version of Warningm
-func (ra *ReplayAdapter) Warnm(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Warningm(m, msg, a...)
+func (a *Adapter) Warnm(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Warningm(m, msg, args...)
 }
 
 /*
 Warning uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelWarning
 */
-func (ra *ReplayAdapter) Warning(msg string) error {
-	return ra.Log(gomol.LevelWarning, nil, msg)
+func (a *Adapter) Warning(msg string) error {
+	return a.Log(gomol.LevelWarning, nil, msg)
 }
 
 /*
 Warningf uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelWarning
 */
-func (ra *ReplayAdapter) Warningf(msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelWarning, nil, msg, a...)
+func (a *Adapter) Warningf(msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelWarning, nil, msg, args...)
 }
 
 /*
@@ -124,39 +124,39 @@ the resulting message to all added loggers at LogLevel.LevelWarning. It will als
 merge all attributes passed in m with any attributes added to Base and include them
 with the message if the Logger supports it.
 */
-func (ra *ReplayAdapter) Warningm(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelWarning, m, msg, a...)
+func (a *Adapter) Warningm(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelWarning, m, msg, args...)
 }
 
 // Err is a short-hand version of Error
-func (ra *ReplayAdapter) Err(msg string) error {
-	return ra.Error(msg)
+func (a *Adapter) Err(msg string) error {
+	return a.Error(msg)
 }
 
 // Errf is a short-hand version of Errorf
-func (ra *ReplayAdapter) Errf(msg string, a ...interface{}) error {
-	return ra.Errorf(msg, a...)
+func (a *Adapter) Errf(msg string, args ...interface{}) error {
+	return a.Errorf(msg, args...)
 }
 
 // Errm is a short-hand version of Errorm
-func (ra *ReplayAdapter) Errm(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Errorm(m, msg, a...)
+func (a *Adapter) Errm(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Errorm(m, msg, args...)
 }
 
 /*
 Error uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelError
 */
-func (ra *ReplayAdapter) Error(msg string) error {
-	return ra.Log(gomol.LevelError, nil, msg)
+func (a *Adapter) Error(msg string) error {
+	return a.Log(gomol.LevelError, nil, msg)
 }
 
 /*
 Errorf uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelError
 */
-func (ra *ReplayAdapter) Errorf(msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelError, nil, msg, a...)
+func (a *Adapter) Errorf(msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelError, nil, msg, args...)
 }
 
 /*
@@ -165,24 +165,24 @@ the resulting message to all added loggers at LogLevel.LevelError. It will also
 merge all attributes passed in m with any attributes added to Base and include them
 with the message if the Logger supports it.
 */
-func (ra *ReplayAdapter) Errorm(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelError, m, msg, a...)
+func (a *Adapter) Errorm(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelError, m, msg, args...)
 }
 
 /*
 Fatal uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelFatal
 */
-func (ra *ReplayAdapter) Fatal(msg string) error {
-	return ra.Log(gomol.LevelFatal, nil, msg)
+func (a *Adapter) Fatal(msg string) error {
+	return a.Log(gomol.LevelFatal, nil, msg)
 }
 
 /*
 Fatalf uses msg as a format string with subsequent parameters as values and logs
 the resulting message to all added loggers at LogLevel.LevelFatal
 */
-func (ra *ReplayAdapter) Fatalf(msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelFatal, nil, msg, a...)
+func (a *Adapter) Fatalf(msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelFatal, nil, msg, args...)
 }
 
 /*
@@ -191,28 +191,28 @@ the resulting message to all added loggers at LogLevel.LevelFatal. It will also
 merge all attributes passed in m with any attributes added to Base and include them
 with the message if the Logger supports it.
 */
-func (ra *ReplayAdapter) Fatalm(m *gomol.Attrs, msg string, a ...interface{}) error {
-	return ra.Log(gomol.LevelFatal, m, msg, a...)
+func (a *Adapter) Fatalm(m *gomol.Attrs, msg string, args ...interface{}) error {
+	return a.Log(gomol.LevelFatal, m, msg, args...)
 }
 
 // Die will log a message using Fatal, call ShutdownLoggers and then exit the application with the provided exit code.
 // This function is not subject to rollup and is always sent to the wrapped logger.
-func (ra *ReplayAdapter) Die(exitCode int, msg string) {
-	ra.Log(gomol.LevelFatal, nil, msg)
-	ra.base.ShutdownLoggers()
+func (a *Adapter) Die(exitCode int, msg string) {
+	a.Log(gomol.LevelFatal, nil, msg)
+	a.base.ShutdownLoggers()
 	curExiter.Exit(exitCode)
 }
 
 // Dief will log a message using Fatalf, call ShutdownLoggers and then exit the application with the provided exit code.
-func (ra *ReplayAdapter) Dief(exitCode int, msg string, a ...interface{}) {
-	ra.Log(gomol.LevelFatal, nil, msg, a...)
-	ra.base.ShutdownLoggers()
+func (a *Adapter) Dief(exitCode int, msg string, args ...interface{}) {
+	a.Log(gomol.LevelFatal, nil, msg, args...)
+	a.base.ShutdownLoggers()
 	curExiter.Exit(exitCode)
 }
 
 // Diem will log a message using Fatalm, call ShutdownLoggers and then exit the application with the provided exit code.
-func (ra *ReplayAdapter) Diem(exitCode int, m *gomol.Attrs, msg string, a ...interface{}) {
-	ra.Log(gomol.LevelFatal, m, msg, a...)
-	ra.base.ShutdownLoggers()
+func (a *Adapter) Diem(exitCode int, m *gomol.Attrs, msg string, args ...interface{}) {
+	a.Log(gomol.LevelFatal, m, msg, args...)
+	a.base.ShutdownLoggers()
 	curExiter.Exit(exitCode)
 }

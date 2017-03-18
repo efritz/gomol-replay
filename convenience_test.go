@@ -45,9 +45,9 @@ func (s *ReplaySuite) TestDieEndsProcessAfterImmediateReplay(c *C) {
 		messages  = []logArgs{}
 		exitCount = 0
 
-		exiter = &testExiter{}
-		logger = newDefaultMockLogger()
-		replay = NewReplayAdapter(logger, AllLevels...)
+		exiter  = &testExiter{}
+		logger  = newDefaultMockLogger()
+		adapter = NewAdapter(logger, AllLevels...)
 	)
 
 	setExiter(exiter)
@@ -63,11 +63,11 @@ func (s *ReplaySuite) TestDieEndsProcessAfterImmediateReplay(c *C) {
 	}
 
 	for i, data := range []dieTestFunc{
-		{func() { replay.Die(1000, "foo") }, false, false},
-		{func() { replay.Dief(2000, "foo", 42) }, false, true},
-		{func() { replay.Diem(3000, gomol.NewAttrsFromMap(map[string]interface{}{"x": "y"}), "foo", 42) }, true, false},
+		{func() { adapter.Die(1000, "foo") }, false, false},
+		{func() { adapter.Dief(2000, "foo", 42) }, false, true},
+		{func() { adapter.Diem(3000, gomol.NewAttrsFromMap(map[string]interface{}{"x": "y"}), "foo", 42) }, true, false},
 	} {
-		replay.Replay(gomol.LevelWarning)
+		adapter.Replay(gomol.LevelWarning)
 		data.f()
 
 		c.Assert(exitCount, Equals, i+1)
@@ -97,7 +97,7 @@ func (s *ReplaySuite) TestDieEndsProcessAfterImmediateReplay(c *C) {
 func (s *ReplaySuite) TestConvenienceMethods(c *C) {
 	var (
 		logger   = newDefaultMockLogger()
-		replay   = NewReplayAdapter(logger, AllLevels...)
+		adapter  = NewAdapter(logger, AllLevels...)
 		messages = []logArgs{}
 	)
 
@@ -107,56 +107,56 @@ func (s *ReplaySuite) TestConvenienceMethods(c *C) {
 	}
 
 	for level, method := range map[gomol.LogLevel]logFunc{
-		gomol.LevelDebug:   replay.Dbg,
-		gomol.LevelInfo:    replay.Info,
-		gomol.LevelWarning: replay.Warn,
-		gomol.LevelError:   replay.Err,
-		gomol.LevelFatal:   replay.Fatal,
+		gomol.LevelDebug:   adapter.Dbg,
+		gomol.LevelInfo:    adapter.Info,
+		gomol.LevelWarning: adapter.Warn,
+		gomol.LevelError:   adapter.Err,
+		gomol.LevelFatal:   adapter.Fatal,
 	} {
 		method("foo")
 		method("bar")
 		method("baz")
-		replay.Replay(gomol.LevelFatal)
+		adapter.Replay(gomol.LevelFatal)
 		assert(c, messages, level, nil, nil)
 
 		// Reset
-		replay.reset()
+		adapter.reset()
 		messages = messages[:0]
 	}
 
 	for level, method := range map[gomol.LogLevel]logFuncf{
-		gomol.LevelDebug:   replay.Dbgf,
-		gomol.LevelInfo:    replay.Infof,
-		gomol.LevelWarning: replay.Warnf,
-		gomol.LevelError:   replay.Errf,
-		gomol.LevelFatal:   replay.Fatalf,
+		gomol.LevelDebug:   adapter.Dbgf,
+		gomol.LevelInfo:    adapter.Infof,
+		gomol.LevelWarning: adapter.Warnf,
+		gomol.LevelError:   adapter.Errf,
+		gomol.LevelFatal:   adapter.Fatalf,
 	} {
 		method("foo", 12)
 		method("bar", 43)
 		method("baz", 74)
-		replay.Replay(gomol.LevelFatal)
+		adapter.Replay(gomol.LevelFatal)
 		assert(c, messages, level, nil, []int{12, 43, 74})
 
 		// Reset
-		replay.reset()
+		adapter.reset()
 		messages = messages[:0]
 	}
 
 	for level, method := range map[gomol.LogLevel]logFuncm{
-		gomol.LevelDebug:   replay.Dbgm,
-		gomol.LevelInfo:    replay.Infom,
-		gomol.LevelWarning: replay.Warnm,
-		gomol.LevelError:   replay.Errm,
-		gomol.LevelFatal:   replay.Fatalm,
+		gomol.LevelDebug:   adapter.Dbgm,
+		gomol.LevelInfo:    adapter.Infom,
+		gomol.LevelWarning: adapter.Warnm,
+		gomol.LevelError:   adapter.Errm,
+		gomol.LevelFatal:   adapter.Fatalm,
 	} {
 		method(gomol.NewAttrsFromMap(map[string]interface{}{"x": "x"}), "foo", 12)
 		method(gomol.NewAttrsFromMap(map[string]interface{}{"y": "y"}), "bar", 43)
 		method(gomol.NewAttrsFromMap(map[string]interface{}{"z": "z"}), "baz", 74)
-		replay.Replay(gomol.LevelFatal)
+		adapter.Replay(gomol.LevelFatal)
 		assert(c, messages, level, []string{"x", "y", "z"}, []int{12, 43, 74})
 
 		// Reset
-		replay.reset()
+		adapter.reset()
 		messages = messages[:0]
 	}
 }
