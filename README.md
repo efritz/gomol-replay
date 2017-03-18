@@ -3,6 +3,7 @@
 [![GoDoc](https://godoc.org/github.com/efritz/gomol-replay?status.svg)](https://godoc.org/github.com/efritz/gomol-replay)
 [![Build Status](https://secure.travis-ci.org/efritz/gomol-replay.png)](http://travis-ci.org/efritz/gomol-replay)
 [![codecov.io](http://codecov.io/github/efritz/gomol-replay/coverage.svg?branch=master)](http://codecov.io/github/efritz/gomol-replay?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/efritz/gomol-replay)](https://goreportcard.com/report/github.com/efritz/gomol-replay)
 
 A logging adapter for [gomol](https://github.com/aphistic/gomol) to support replaying
 a sequence of log messages but at a higher log level. 
